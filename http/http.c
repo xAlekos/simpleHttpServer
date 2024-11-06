@@ -91,7 +91,7 @@ int request_status_line_parse(char* request_buffer, http_request_status_line_t* 
     return 0;
 
 errorcleanup:
-    free(uri);
+    uri_free(uri);
     return 1;
 
 }
