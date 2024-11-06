@@ -1,10 +1,237 @@
 #include "http.h"
 
-void valide_response_create(char* buffer){
-    char* start_line = "HTTP/1.1 202 OK\n";
-    char* headers = "Content-Length: 13\nContent-Type: text/plain\n\n";
-    char* body = "Hello, world!";
-    strcpy(buffer, start_line);
-    strcat(buffer, headers);
-    strcat(buffer, body);
+
+http_request_method_t parse_http_method(const char* method_str){
+    
+    if (strcmp(method_str, "GET") == 0) return GET;
+    if (strcmp(method_str, "POST") == 0) return POST;
+    if (strcmp(method_str, "CONNECT") == 0) return CONNECT;
+    if (strcmp(method_str, "DELETE") == 0) return DELETE;
+    if (strcmp(method_str, "HEAD") == 0) return HEAD;
+    if (strcmp(method_str, "OPTIONS") == 0) return OPTIONS;
+    if (strcmp(method_str, "PATCH") == 0) return PATCH;
+    if (strcmp(method_str, "PUT") == 0) return PUT;
+    if (strcmp(method_str, "TRACE") == 0) return TRACE;
+    
+    return METHOD_ERROR;  
+}
+
+
+http_request_version_t parse_http_version(const char* version_str){
+
+    if (strcmp(version_str, "HTTP/1.0") == 0) return HTTP10;
+    if (strcmp(version_str, "HTTP/1.1") == 0) return HTTP11;
+    if (strcmp(version_str, "HTTP/2") == 0) return HTTP2;
+
+    return VERSION_ERROR; 
+}
+
+
+
+http_request_status_line_t* request_sl_alloc(){
+
+    struct http_request_status_line* sl = malloc(sizeof(http_request_status_line_t));
+
+    if(sl == NULL){
+        perror("[ERROR] http_request_status_line memory allocation failed");
+        return NULL;
+    }
+
+    sl->uri = NULL; 
+
+    return sl;
+
+}
+
+void request_sl_free(http_request_status_line_t* sl){
+    
+    if(sl->uri != NULL)
+        uri_free(sl->uri);
+    
+    free(sl);
+}
+
+
+int request_status_line_parse(char* request_buffer, http_request_status_line_t* sl){
+
+    char buffer_cpy[REQUEST_BUFFER_SIZE]; //TODO Probabilmente non serve 
+    memcpy(buffer_cpy,request_buffer,REQUEST_BUFFER_SIZE);  
+
+    uri_t* uri = uri_alloc();
+    char* saveptr;
+    char* request_method;
+    char* uri_string;
+    char* http_version;
+
+    request_method = strtok_r(buffer_cpy," ",&saveptr);
+    if(request_method == NULL)
+        return 1;
+    uri_string = strtok_r(NULL," ",&saveptr);
+    if(uri_string == NULL)
+        return 1;
+    if(uri_parse(uri_string,uri) == 1)
+        return 1;
+    
+    http_version = strtok_r(NULL,"\n",&saveptr);
+    if(http_version == NULL)
+        return 1;
+    
+    sl->request_method = parse_http_method(request_method);
+    sl->version = parse_http_version(http_version);
+    sl->uri = uri;
+    
+    return 0;
+}
+
+
+http_response_t* response_alloc(){
+
+    http_response_t* response = malloc(sizeof(http_response_t));
+    
+    if(response == NULL){
+        perror("[ERROR] response allocation failed");
+        return NULL;
+    }
+    
+    response->body = NULL;
+    response->headers = NULL;
+    response->status_line = NULL;
+
+    return response;
+};
+
+void response_free(http_response_t* response){
+
+    if(response->body != NULL)
+        free(response->body);
+    
+    if(response->headers != NULL)
+        free(response->headers);
+
+    if(response->status_line != NULL)
+        free(response->status_line);    
+
+
+}
+
+char* response_status_line_create(http_status_code_t code, u_int32_t sl_lenght){
+    
+    char* response_status_line = malloc(sl_lenght + 1);
+
+        if(response_status_line == NULL){
+            perror("[ERROR] response_status_line allocation failed");
+            return NULL;
+        }
+        strcpy(response_status_line,HTTP_VERSION_11);
+
+        switch(code){
+
+        case UNIMPLEMENTED:
+            strcat(response_status_line,HTTP_RESPONSE_NOT_IMPLEMENTED);
+            break;
+        case BAD_REQUEST:
+            strcat(response_status_line,HTTP_RESPONSE_BAD_REQUEST);
+            break;
+        case OK:
+            strcat(response_status_line,HTTP_RESPONSE_OK);
+            break;
+        case NOT_FOUND:
+            strcat(response_status_line,HTTP_RESPONSE_NOT_FOUND);
+            break;
+        case INTERNAL_SERVER_ERROR:
+            strcat(response_status_line,HTTP_RESPONSE_INTERNAL_SERVER_ERROR);
+        default:
+            strcat(response_status_line,HTTP_RESPONSE_INTERNAL_SERVER_ERROR);
+        }
+
+        return response_status_line;
+
+}
+
+
+int request_handle(http_response_t* response, http_request_status_line_t* request){
+    
+    u_int32_t response_status_line_len = 0;
+
+    response_status_line_len += strlen(HTTP_VERSION_11);
+
+    bool status_code_set = 0;
+    http_status_code_t status_code;
+
+    switch (request->version){
+        case HTTP2:
+            status_code = UNIMPLEMENTED;
+            response_status_line_len += strlen(HTTP_RESPONSE_NOT_IMPLEMENTED);
+            status_code_set = 1;
+            break;
+        case VERSION_ERROR:
+            status_code = BAD_REQUEST;
+            response_status_line_len += strlen(HTTP_RESPONSE_BAD_REQUEST);
+            status_code_set = 1;
+        default:
+            break;
+    }
+
+    if(status_code_set == 1){
+        
+        response->status_line = response_status_line_create(status_code,response_status_line_len);
+        
+        if(response->status_line == NULL){
+            perror("[ERROR] Errore allocazione status line risposta: ");
+            return 1;
+        }
+        
+    }
+
+
+    switch(request->request_method){
+
+        case GET: 
+            status_code = http_get(response,request->uri); 
+            break;
+        default: 
+            status_code = UNIMPLEMENTED;
+            break;
+    }
+
+    response->status_line = response_status_line_create(status_code,response_status_line_len);
+        
+    if(response->status_line == NULL){
+        perror("[ERROR] Errore allocazione status line risposta: ");
+        return 1;
+    }
+
+    return 0;
+    
+}
+
+http_status_code_t http_get(http_response_t* response, uri_t* uri){
+    
+    printf("HTTP_GET: CERCO IL FILE %s\n", uri->path);
+    FILE* requested_file = fopen(uri->path,"rb");
+    int ret;
+
+    if(requested_file == NULL){
+        
+        if(errno == ENOENT) return NOT_FOUND;
+        else return INTERNAL_SERVER_ERROR;
+        
+    }
+
+    size_t file_size = open_file_size_get(requested_file);
+
+    response->body = malloc(file_size);
+
+    ret = file_content_copy(requested_file,file_size,response->body);
+    
+    if(ret == 1)
+        return INTERNAL_SERVER_ERROR;
+    
+   char* headers_string = "Content Type: text/plain\r\n"; //TODO questa roba è temporanea.
+
+    response->headers = malloc(strlen(headers_string) + 1);
+    strcpy(response->headers, headers_string);
+    
+    return OK;
+
 }

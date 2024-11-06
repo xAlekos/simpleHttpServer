@@ -11,19 +11,19 @@ int socket_init(){
     socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_fd == -1) {
         perror("Errore apertura porta: ");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     if (bind(socket_fd, (struct sockaddr*)&socket_address, sizeof(socket_address)) != 0) {
         perror("Errore binding socket: ");
         close(socket_fd);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     if (listen(socket_fd, BACKLOG) != 0) {
         perror("Errore messa in ascolto sulla socket: ");
         close(socket_fd);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     printf("Socket in ascolto su %s:%d\n", inet_ntoa(ipv4address), PORT);
     return socket_fd;
@@ -42,7 +42,7 @@ int socket_accept(int socket_fd){
     if (connection_fd < 0) {
         perror("Connessione fallita: ");
         close(socket_fd);
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     printf("Connessione stabilita con il client su %s:%d\n", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port));

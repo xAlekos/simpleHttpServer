@@ -2,5 +2,12 @@
     "files.associations": {
         "unistd.h": "c"
     },
-    "makefile.configureOnOpen": true
+    "makefile.configureOnOpen": true,
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/home/bantino/Progetti/http/bin",
+            "binaryPath": "/home/bantino/Progetti/http/bin/server",
+            "binaryArgs": []
+        }
+    ]
 }
