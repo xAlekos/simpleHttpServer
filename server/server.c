@@ -13,7 +13,7 @@ void* handle_connection(void* connection_fd){
 
     if(request_status_line_parse(request_buff,sl) == 1){ //TODO Questa soluzione è temporanea, sostituire.
 
-        response->status_line = response_status_line_create(BAD_REQUEST,strlen(HTTP_VERSION_11) + strlen(HTTP_RESPONSE_BAD_REQUEST));
+        response->status_line = response_status_line_create(BAD_REQUEST);
         
         if(response->status_line != NULL){ 
             write(*((int*)connection_fd),response->status_line,strlen(response->status_line));
@@ -23,13 +23,11 @@ void* handle_connection(void* connection_fd){
         goto cleanup;
 
     }
-
-    memset(request_buff,0,sizeof(request_buff));
     
     request_handle(response,sl);
     
-    
     printf("RISPOSTA:\n");
+
     if(response->status_line != NULL){
         write(*((int*)connection_fd),response->status_line,strlen(response->status_line));
         printf("%s",response->status_line);
@@ -41,8 +39,8 @@ void* handle_connection(void* connection_fd){
     if(response->body != NULL){
         write(*((int*)connection_fd),"\n",1);
         printf("\n");
-        write(*((int*)connection_fd),response->body,strlen(response->body));
-        printf("%s",response->body);
+        write(*((int*)connection_fd),response->body,response->body_size);
+        //printf("%s",response->body);
     }
 
 cleanup:
@@ -70,7 +68,7 @@ int main(){
     
         *connection_fd = socket_accept(socket_fd);
 
-        pthread_t thread_id;
+        pthread_t thread_id;    //sistemare tutte queste cose brutte
         if (pthread_create(&thread_id, NULL, handle_connection, connection_fd) != 0) {
             perror("[ERROR] thread creation failed: ");
             close(socket_fd);

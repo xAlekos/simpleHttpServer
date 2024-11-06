@@ -13,8 +13,7 @@ size_t open_file_size_get(FILE* file){
 
 int file_content_copy(FILE* file, size_t size ,char* buffer){
 
-    int ret
-    ;    
+    int ret;    
     ret = fread(buffer,1,size,file);
     
     if(ret != size){

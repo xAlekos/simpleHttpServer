@@ -57,7 +57,7 @@ typedef struct http_request_status_line{
 
     http_request_method_t request_method;
     uri_t* uri;
-    http_status_code_t version;
+    http_request_version_t version;
 
 }http_request_status_line_t;
 
@@ -73,6 +73,7 @@ typedef struct http_response{
     char* status_line;
     char* headers;
     char* body;
+    size_t body_size;
 
 }http_response_t;
 
@@ -82,7 +83,7 @@ void response_free(http_response_t *response);
 
 int request_handle(http_response_t* response, http_request_status_line_t* request);
 
-char* response_status_line_create(http_status_code_t code, u_int32_t sl_lenght);
+char* response_status_line_create(http_status_code_t code);
 
 http_status_code_t http_get(http_response_t* response, uri_t* uri);
 

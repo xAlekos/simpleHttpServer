@@ -10,6 +10,7 @@
 #include <stdbool.h>
 
 #define REQUEST_BUFFER_SIZE 10000
+#define SIZE_OF_STREAM(stream) sizeof(stream))/sizeof(stream[0]);
 
 
 size_t open_file_size_get(FILE* file);

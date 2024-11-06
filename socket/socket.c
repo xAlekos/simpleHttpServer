@@ -42,12 +42,13 @@ int socket_accept(int socket_fd){
     if (connection_fd < 0) {
         perror("Connessione fallita: ");
         close(socket_fd);
-        exit(EXIT_FAILURE);
+        return 1;
     }
 
     printf("Connessione stabilita con il client su %s:%d\n", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port));
 
    return connection_fd;
+   
 
 }
 
