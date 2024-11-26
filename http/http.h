@@ -3,6 +3,7 @@
 #include "../utils/utils.h"
 #include "../uri/uri.h"
 
+
 #define HTTP_VERSION_11 "HTTP/1.1 "
 
 #define HTTP_RESPONSE_OK "200 OK\r\n"
@@ -11,6 +12,30 @@
 #define HTTP_RESPONSE_BAD_REQUEST "400 Bad Request\r\n"
 #define HTTP_RESPONSE_INTERNAL_SERVER_ERROR "500 Internal Server Error\r\n"
 
+#define HTTP_HEADER_CONTENT_TYPE "Content Type: "
+#define HTTP_HEADER_CONTENT_SIZE "Content Size: "
+
+
+#define HTTP_CONTENT_PLAIN_TEXT "text/plain"
+#define HTTP_CONTENT_APPLICATION_JSON "application/json"
+#define HTTP_CONTENT_TEXT_HTML "text/html"
+#define HTTP_CONTENT_IMG_PNG "image/png"
+#define HTTP_CONTENT_IMG_JPEG "image/jpeg"
+#define HTTP_CONTENT_IMG_SVG "image/svg+xml"
+#define HTTP_CONTENT_IMG_GIF "image/gif"
+
+
+typedef enum http_mime_type{
+    MISSING,
+    PLAIN,
+    JSON,
+    HTML,
+    PNG,
+    JPEG,
+    SVG,
+    GIF
+
+}http_mime_type_t;
 
 typedef enum http_request_method{
     GET,

@@ -212,6 +212,59 @@ int request_handle(http_response_t* response, http_request_status_line_t* reques
     
 }
 
+char* headers_string_generate(http_mime_type_t content_type, size_t content_size){
+
+    char* headers_string =  malloc(1024);
+    
+    if(headers_string == NULL){
+        perror("[ERROR] Headers string allocation failed");
+        return NULL;
+    }
+
+    headers_string[0] = '\0';
+
+    if(content_type != MISSING){
+        strcat(headers_string,HTTP_HEADER_CONTENT_TYPE);
+        
+        switch(content_type){
+            case PLAIN:
+                strcat(headers_string,HTTP_CONTENT_PLAIN_TEXT);
+                break;
+            case JSON:
+                strcat(headers_string,HTTP_CONTENT_APPLICATION_JSON);
+                break;
+            case HTML:
+                strcat(headers_string,HTTP_CONTENT_TEXT_HTML);
+                break;
+            case PNG:
+                strcat(headers_string,HTTP_CONTENT_IMG_PNG);
+                break;
+            case JPEG:
+                strcat(headers_string,HTTP_CONTENT_IMG_JPEG);
+                break;
+            case SVG:
+                strcat(headers_string,HTTP_CONTENT_IMG_SVG);
+                break;
+            case GIF:
+                strcat(headers_string,HTTP_CONTENT_IMG_GIF);
+                break;    
+        }
+        strcat(headers_string,"\r\n");
+    }
+
+    char size_string[32];
+
+    snprintf(size_string,2,"%zu",content_size);
+
+    strcat(headers_string, HTTP_HEADER_CONTENT_SIZE);
+    strcat(headers_string, size_string);
+    strcat(headers_string,"\r\n");
+    
+
+    return headers_string;
+}
+
+
 http_status_code_t http_get(http_response_t* response, uri_t* uri){
     
     printf("HTTP_GET: CERCO IL FILE %s\n", uri->path);

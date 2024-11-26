@@ -1,5 +1,9 @@
 #include "utils.h"
 
+
+
+
+
 size_t open_file_size_get(FILE* file){
     
     size_t file_size;

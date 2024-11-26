@@ -1,6 +1,11 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#define STRINGIFY(x) #x
+
+#define CONCAT(a, b) a b
+
+
 #include <stdio.h> 
 #include <stdlib.h> 
 #include <string.h> 

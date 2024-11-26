@@ -32,7 +32,7 @@ int uri_parse(char* uri_str,uri_t* uri){
     char* saveptr;
     char* str_segment = NULL;
     char* str_segment_prev = NULL;
-    char* default_dir = "."; //TODO, renderla configurabile magari
+    char* default_dir = "./root"; //TODO, renderla configurabile magari
     
     uri->path = malloc(strlen(default_dir) + strlen(uri_str) + 1);
         
