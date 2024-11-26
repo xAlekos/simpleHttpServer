@@ -3,7 +3,7 @@
 
 #define STRINGIFY(x) #x
 
-#define CONCAT(a, b) a b
+
 
 
 #include <stdio.h> 

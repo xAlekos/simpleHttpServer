@@ -231,7 +231,7 @@ char* headers_string_generate(http_mime_type_t content_type, size_t content_size
                 strcat(headers_string,HTTP_CONTENT_PLAIN_TEXT);
                 break;
             case JSON:
-                strcat(headers_string,HTTP_CONTENT_APPLICATION_JSON);
+                strcat(headers_string,HTTP_CONTENT_APPLICATION_JSON); 
                 break;
             case HTML:
                 strcat(headers_string,HTTP_CONTENT_TEXT_HTML);
