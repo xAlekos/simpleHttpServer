@@ -66,22 +66,27 @@ int request_status_line_parse(char* request_buffer, http_request_status_line_t* 
     request_method = strtok_r(buffer_cpy," ",&saveptr);
     
     if(request_method == NULL){
-        goto errorcleanup;
+        uri_free(uri);
+        return 1;
     }
 
     uri_string = strtok_r(NULL," ",&saveptr);
     
     if(uri_string == NULL){
-        goto errorcleanup;
+        uri_free(uri);
+        return 1;
     }
     
     if(uri_parse(uri_string,uri) == 1){
-        goto errorcleanup;
+        uri_free(uri);
+        return 1;
     }
     
     http_version = strtok_r(NULL,"\r",&saveptr);
+    
     if(http_version == NULL){
-        goto errorcleanup;
+        uri_free(uri);
+        return 1;
     }
     
     sl->request_method = parse_http_method(request_method);
@@ -89,11 +94,6 @@ int request_status_line_parse(char* request_buffer, http_request_status_line_t* 
     sl->uri = uri;
     
     return 0;
-
-errorcleanup:
-    uri_free(uri);
-    return 1;
-
 }
 
 
@@ -214,7 +214,7 @@ int request_handle(http_response_t* response, http_request_status_line_t* reques
 
 char* headers_string_generate(http_mime_type_t content_type, size_t content_size){
 
-    char* headers_string =  malloc(1024);
+    char* headers_string = malloc(1024);
     
     if(headers_string == NULL){
         perror("[ERROR] Headers string allocation failed");
@@ -233,6 +233,9 @@ char* headers_string_generate(http_mime_type_t content_type, size_t content_size
             case JSON:
                 strcat(headers_string,HTTP_CONTENT_APPLICATION_JSON); 
                 break;
+            case JAVASCRIPT:
+                strcat(headers_string,HTTP_CONTENT_APPLICATION_JAVASCRIPT); 
+                break;
             case HTML:
                 strcat(headers_string,HTTP_CONTENT_TEXT_HTML);
                 break;
@@ -247,14 +250,16 @@ char* headers_string_generate(http_mime_type_t content_type, size_t content_size
                 break;
             case GIF:
                 strcat(headers_string,HTTP_CONTENT_IMG_GIF);
-                break;    
+                break;
+            case MISSING:
+                strcat(headers_string,HTTP_CONTENT_PLAIN_TEXT);
         }
         strcat(headers_string,"\r\n");
     }
 
     char size_string[32];
 
-    snprintf(size_string,2,"%zu",content_size);
+    snprintf(size_string,32,"%zu",content_size);
 
     strcat(headers_string, HTTP_HEADER_CONTENT_SIZE);
     strcat(headers_string, size_string);
@@ -299,7 +304,9 @@ http_status_code_t http_get(http_response_t* response, uri_t* uri){
         return INTERNAL_SERVER_ERROR;
     }
 
-    char* headers_string = "Content Type: text/plain\r\n"; //TODO questa roba è temporanea.
+    http_mime_type_t get_content_type = mime_type_from_extension(uri->extension);
+
+    char* headers_string = headers_string_generate(get_content_type,response->body_size);
 
     response->headers = malloc(strlen(headers_string) + 1);
 

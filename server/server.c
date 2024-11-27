@@ -40,7 +40,6 @@ void* handle_connection(void* connection_fd){
         write(*((int*)connection_fd),"\n",1);
         printf("\n");
         write(*((int*)connection_fd),response->body,response->body_size);
-        //printf("%s",response->body);
     }
 
 cleanup:

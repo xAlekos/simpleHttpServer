@@ -1,17 +1,59 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page</title>
+    <title>Comprehensive HTTP Server Test</title>
+    <!-- External CSS -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Benvenuto nel Server HTTP di Test!</h1>
-    <p>Questa è una bellisima HOME PAGE!.</p>
-    <ul>
-        <li><a href="about.html">Informazioni sul server</a></li>
-        <li><a href="contact.html">Contattaci</a></li>
-        <li><a href="services.html">Servizi offerti</a></li>
-    </ul>
+    <header>
+        <h1>Welcome to the HTTP Server Test Page</h1>
+        <p>This page includes various features to test your HTTP server implementation.</p>
+    </header>
+
+    <section>
+        <h2>Images</h2>
+        <p>Below are examples of images served by the server:</p>
+        <img src="example.png" alt="Example PNG" width="300">
+        <img src="example.jpg" alt="Example JPEG" width="300">
+        <img src="example" alt="Image without extension" width="300">
+    </section>
+
+    <section>
+        <h2>Styles</h2>
+        <p class="styled-text">This text is styled with external CSS. If the CSS file is served correctly, it should appear styled.</p>
+    </section>
+
+    <section>
+        <h2>JavaScript</h2>
+        <p id="js-demo">If JavaScript works, this text will change.</p>
+        <button onclick="changeText()">Click me</button>
+        <!-- External JS -->
+        <script src="script.js"></script>
+    </section>
+
+    <section>
+        <h2>Form</h2>
+        <p>Test form submission with GET or POST methods:</p>
+        <form action="/submit" method="POST">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+            <button type="submit">Submit</button>
+        </form>
+    </section>
+
+    <section>
+        <h2>Links and Files</h2>
+        <p><a href="test.txt" download>Download test.txt</a></p>
+        <p><a href="unknown" target="_blank">Open unknown file type</a></p>
+    </section>
+
+    <footer>
+        <p>Test Page Footer &copy; 2024</p>
+    </footer>
 </body>
 </html>

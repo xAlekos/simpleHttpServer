@@ -45,6 +45,7 @@ int uri_parse(char* uri_str,uri_t* uri){
     printf("uri_path parsed by URI_PARSE : %s\n",uri->path);
         
     str_segment = strtok_r(uri_str,".",&saveptr); 
+    
     while((str_segment = strtok_r(NULL,".",&saveptr)) != NULL)
         str_segment_prev = str_segment;
 
