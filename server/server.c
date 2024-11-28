@@ -1,11 +1,25 @@
 #include "server.h"
 
 
+void handle_sigint(int sig) {
+
+    const char* msg = "SIGINT!\n";
+    write(STDOUT_FILENO, msg, strlen(msg)); 
+    running = 0; 
+
+}
+
+
 void* handle_connection(void* connection_fd){
 
     char request_buff[REQUEST_BUFFER_SIZE] = {0};
 
-    read(*((int*)connection_fd), request_buff, sizeof(request_buff)); 
+    size_t bytes_read = read(*((int*)connection_fd), request_buff, sizeof(request_buff));
+    
+    if (bytes_read <= 0) {
+        perror("[ERROR] Read failed");
+        goto cleanup;
+    } 
 
     printf("Request:\n %s", request_buff);
     http_request_status_line_t* sl = request_sl_alloc();
@@ -28,7 +42,7 @@ void* handle_connection(void* connection_fd){
     
     printf("RISPOSTA:\n");
 
-    if(response->status_line != NULL){
+    if(response->status_line != NULL){  //TODO SOSTITUIRE CON FUNZIONE!
         write(*((int*)connection_fd),response->status_line,strlen(response->status_line));
         printf("%s",response->status_line);
     }
@@ -50,16 +64,22 @@ cleanup:
     return NULL;
 }
 
+volatile sig_atomic_t running = 1;
+
 int main(){
 
     
+
     int socket_fd = socket_init();
     thread_pool* pool = thread_pool_init();
-    bool running = true;
+    
+
+    signal(SIGINT, handle_sigint);
 
     while(running){
 
         int *connection_fd = malloc(sizeof(int));
+
         if (connection_fd == NULL) {
             perror("[ERROR] connection file descriptor allocation failed: ");
             close(socket_fd);
@@ -72,7 +92,9 @@ int main(){
 
         
     }
-    
+
+    printf("[INFO] Shutting down server!");
+
     thread_pool_shutdown(pool);
     close(socket_fd);
     return 0;
