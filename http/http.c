@@ -308,7 +308,7 @@ http_status_code_t http_get(http_response_t* response, uri_t* uri){
 
     char* headers_string = headers_string_generate(get_content_type,response->body_size);
 
-    response->headers = malloc(strlen(headers_string) + 1);
+    response->headers = headers_string;
 
     if(response->headers == NULL){
         perror("[ERROR] Response headers allocation failed");
