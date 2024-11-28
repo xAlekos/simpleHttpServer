@@ -1,7 +1,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <pthread.h>
+#include "../threadpool/threadpool.h"
 #include "../socket/socket.h"
 #include "../utils/utils.h"
 #include "../http/http.h"

@@ -54,27 +54,26 @@ int main(){
 
     
     int socket_fd = socket_init();
+    thread_pool* pool = thread_pool_init();
+    bool running = true;
 
-    while(1){
+    while(running){
 
         int *connection_fd = malloc(sizeof(int));
         if (connection_fd == NULL) {
             perror("[ERROR] connection file descriptor allocation failed: ");
             close(socket_fd);
-            return 0; //Qui si potrebbe pure non uccidere il server ma smettere di accettare connessioni ma per ora ci piace così 
-                    // TODO REIMPLEMENTARE TUTTA LA LOGICA DEL MULTITHREADING
+            running = false; //Qui si potrebbe pure non uccidere il server ma smettere di accettare connessioni ma per ora ci piace così 
         }
     
         *connection_fd = socket_accept(socket_fd);
 
-        pthread_t thread_id;    //sistemare tutte queste cose brutte
-        if (pthread_create(&thread_id, NULL, handle_connection, connection_fd) != 0) {
-            perror("[ERROR] thread creation failed: ");
-            close(socket_fd);
-            return 0;
-        }
+        add_work(handle_connection,(void*)connection_fd,pool);
+
+        
     }
     
+    thread_pool_shutdown(pool);
     close(socket_fd);
     return 0;
 }
