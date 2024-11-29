@@ -55,31 +55,20 @@ void* worker_job(void* arg){
 
    thread_pool* pool = (thread_pool*)arg;
 
-    printf("comincio a lavorare\n");
-   while(pool->working){
+    while(pool->working){
 
-    printf("mi blocco sul semaforo\n");
-    sem_wait(&pool->is_there_work_sem);
+        sem_wait(&pool->is_there_work_sem);
 
-    printf("mE so svegliato\n");
+        pthread_mutex_lock(&pool->mutex);
 
-    pthread_mutex_lock(&pool->mutex);
+        task_t* task = task_queue_dequeue(pool->task_queue);
 
-    printf("C'ho er mutex\n");
+        pthread_mutex_unlock(&pool->mutex);
 
-    task_t* task = task_queue_dequeue(pool->task_queue);
+        if(task != NULL && task->task_function != NULL){
+            task->task_function(task->args);
+        }
 
-    printf("ho preso la task\n");
-
-    pthread_mutex_unlock(&pool->mutex);
-
-    printf("lascio il mutex\n");
-
-    if(task != NULL && task->task_function != NULL){
-        printf("eseguo la task\n");
-        task->task_function(task->args);
-    }
-    printf("ho eseguito la task credo\n");
 
    }
 
@@ -124,6 +113,7 @@ thread_pool* thread_pool_init(){
 
 void thread_pool_shutdown(thread_pool* pool) {
     pool->working = false;
+    
     for (int i = 0; i < WORKER_THREADS_NUM; i++) {
         sem_post(&pool->is_there_work_sem); 
     }

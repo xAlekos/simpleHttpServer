@@ -315,7 +315,6 @@ http_status_code_t http_get(http_response_t* response, uri_t* uri){
         return INTERNAL_SERVER_ERROR;
     }
 
-    strcpy(response->headers, headers_string);
     fclose(requested_file);
     
     return OK;

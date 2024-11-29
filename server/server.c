@@ -2,9 +2,8 @@
 
 
 void handle_sigint(int sig) {
-
-    const char* msg = "SIGINT!\n";
-    write(STDOUT_FILENO, msg, strlen(msg)); 
+    
+    write(pipe_fd[1],"q",1);
     running = 0; 
 
 }
@@ -64,36 +63,69 @@ cleanup:
     return NULL;
 }
 
+
 volatile sig_atomic_t running = 1;
+
+int pipe_fd[2];
+
 
 int main(){
 
-    
-
-    int socket_fd = socket_init();
-    thread_pool* pool = thread_pool_init();
+    if(pipe(pipe_fd) == -1){
+        perror("[ERROR] pipe creation failed");
+    }
     
 
     signal(SIGINT, handle_sigint);
+    int socket_fd = socket_init();
+    thread_pool* pool = thread_pool_init();
+    
+    struct pollfd fds[2];
+
+    fds[0].events = POLLIN;
+    fds[0].fd = socket_fd;
+    fds[1].events = POLLIN;
+    fds[1].fd = pipe_fd[0];
+
+    int poll_ret;
+    
 
     while(running){
 
-        int *connection_fd = malloc(sizeof(int));
 
-        if (connection_fd == NULL) {
-            perror("[ERROR] connection file descriptor allocation failed: ");
-            close(socket_fd);
-            running = false; //Qui si potrebbe pure non uccidere il server ma smettere di accettare connessioni ma per ora ci piace così 
+        poll_ret = poll(fds,2,-1);
+
+        if(poll_ret == -1){
+            if(errno == EINTR) continue;
+            perror("[ERROR] Polling failed");
+            running = 0;
+
         }
-    
-        *connection_fd = socket_accept(socket_fd);
+        
+        else{
 
-        add_work(handle_connection,(void*)connection_fd,pool);
+            if(fds[0].revents & POLLIN){
 
+                int *connection_fd = malloc(sizeof(int));
+
+                if (connection_fd == NULL) {
+                    perror("[ERROR] connection file descriptor allocation failed: ");
+                    running = false;
+                }
+
+                *connection_fd = socket_accept(socket_fd);
+                add_work(handle_connection,(void*)connection_fd,pool);
+                }
+
+            if(fds[1].revents & POLLIN){
+                running = 0;
+            }
+
+        }
         
     }
 
-    printf("[INFO] Shutting down server!");
+    printf("[INFO] Shutting down server!\n");
 
     thread_pool_shutdown(pool);
     close(socket_fd);
