@@ -7,6 +7,11 @@
             "cwd": "/home/bantino/Progetti/http/bin",
             "binaryPath": "/home/bantino/Progetti/http/bin/server",
             "binaryArgs": []
+        },
+        {
+            "cwd": "/home/bantino/Progetti/simpleHttpServer/bin",
+            "binaryPath": "/home/bantino/Progetti/simpleHttpServer/bin/server",
+            "binaryArgs": []
         }
     ]
 }

@@ -79,7 +79,8 @@ void* worker_job(void* arg){
 
 int add_work(void* (*task_function)(void*),void* args, thread_pool* workers){
     
-    
+    int queue_full;
+
     if ((workers->task_queue->back + 1) % TASK_QUEUE_SIZE == workers->task_queue->front) { //Check if task_queue is full
         return 1; 
     }
@@ -88,9 +89,10 @@ int add_work(void* (*task_function)(void*),void* args, thread_pool* workers){
     task.task_function = task_function;
     task.args = args;
 
-    sem_post(&workers->is_there_work_sem);
+    queue_full = task_queue_enqueue(workers->task_queue,task);
 
-    task_queue_enqueue(workers->task_queue,task);
+    if(!queue_full)
+        sem_post(&workers->is_there_work_sem);
 
     return 0;
 }

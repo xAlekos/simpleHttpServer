@@ -39,9 +39,8 @@ void* handle_connection(void* connection_fd){
     
     request_handle(response,sl);
     
-    printf("RISPOSTA:\n");
 
-    if(response->status_line != NULL){  //TODO SOSTITUIRE CON FUNZIONE!
+    if(response->status_line != NULL){  //TODO SOSTITUIRE CON FUNZIONE! E AGGIUNGERE CONTROLLO SE LA CONNESSIONE VIENE CHIUSA
         write(*((int*)connection_fd),response->status_line,strlen(response->status_line));
         printf("%s",response->status_line);
     }

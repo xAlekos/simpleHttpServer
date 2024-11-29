@@ -2,6 +2,7 @@
 #define URI_H
 
 #include "../utils/utils.h"
+#define ROOT_DIR "/home/bantino/Progetti/simpleHttpServer/root"
 
 typedef struct uri{
 
