@@ -17,4 +17,6 @@ void handle_sigint(int sig);
 
 void* handle_connection(void*  connection_fd);
 
+void server_loop(int socket_fd, thread_pool* pool);
+
 #endif

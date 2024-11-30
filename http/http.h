@@ -89,6 +89,8 @@ int request_handle(http_response_t* response, http_request_status_line_t* reques
 
 char* response_status_line_create(http_status_code_t code);
 
+void http_response_send(http_response_t* response, int connection_fd);
+
 http_status_code_t http_get(http_response_t* response, uri_t* uri);
 
 #endif

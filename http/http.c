@@ -48,7 +48,8 @@ void request_sl_free(http_request_status_line_t* sl){
     if(sl->uri != NULL)
         uri_free(sl->uri);
     
-    free(sl);
+    if(sl != NULL)
+        free(sl);
 }
 
 
@@ -125,7 +126,8 @@ void response_free(http_response_t* response){
     if(response->status_line != NULL)
         free(response->status_line);    
 
-    free(response);
+    if(response != NULL)
+        free(response);
 
 
 }
@@ -319,5 +321,23 @@ http_status_code_t http_get(http_response_t* response, uri_t* uri){
     
     return OK;
 
+
+}
+
+void http_response_send(http_response_t* response, int connection_fd){
+
+    if(response->status_line != NULL){
+        write(connection_fd,response->status_line,strlen(response->status_line));
+        printf("%s",response->status_line);
+    }
+    if(response->headers != NULL){    
+        write(connection_fd,response->headers,strlen(response->headers));
+        printf("%s",response->headers);
+    }
+    if(response->body != NULL){
+        write(connection_fd,"\n",1);
+        printf("\n");
+        write(connection_fd,response->body,response->body_size);
+    }
 
 }

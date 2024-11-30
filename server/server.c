@@ -22,37 +22,26 @@ void* handle_connection(void* connection_fd){
 
     printf("Request:\n %s", request_buff);
     http_request_status_line_t* sl = request_sl_alloc();
+    if(sl == NULL){
+        goto cleanup;
+    }
+
     http_response_t* response = response_alloc();
+    if(response == NULL)
+        goto cleanup;
 
     if(request_status_line_parse(request_buff,sl) == 1){ //TODO Questa soluzione è temporanea, sostituire.
 
         response->status_line = response_status_line_create(BAD_REQUEST);
         
-        if(response->status_line != NULL){ 
-            write(*((int*)connection_fd),response->status_line,strlen(response->status_line));
-            printf("%s",response->status_line);
-        }
+         http_response_send(response,*((int*)connection_fd));
 
         goto cleanup;
 
     }
     
     request_handle(response,sl);
-    
-
-    if(response->status_line != NULL){  //TODO SOSTITUIRE CON FUNZIONE! E AGGIUNGERE CONTROLLO SE LA CONNESSIONE VIENE CHIUSA
-        write(*((int*)connection_fd),response->status_line,strlen(response->status_line));
-        printf("%s",response->status_line);
-    }
-    if(response->headers != NULL){    
-        write(*((int*)connection_fd),response->headers,strlen(response->headers));
-        printf("%s",response->headers);
-    }
-    if(response->body != NULL){
-        write(*((int*)connection_fd),"\n",1);
-        printf("\n");
-        write(*((int*)connection_fd),response->body,response->body_size);
-    }
+    http_response_send(response,*((int*)connection_fd));
 
 cleanup:
     request_sl_free(sl);
@@ -62,23 +51,8 @@ cleanup:
     return NULL;
 }
 
+void server_loop(int socket_fd, thread_pool* pool){
 
-volatile sig_atomic_t running = 1;
-
-int pipe_fd[2];
-
-
-int main(){
-
-    if(pipe(pipe_fd) == -1){
-        perror("[ERROR] pipe creation failed");
-    }
-    
-
-    signal(SIGINT, handle_sigint);
-    int socket_fd = socket_init();
-    thread_pool* pool = thread_pool_init();
-    
     struct pollfd fds[2];
 
     fds[0].events = POLLIN;
@@ -109,10 +83,17 @@ int main(){
 
                 if (connection_fd == NULL) {
                     perror("[ERROR] connection file descriptor allocation failed: ");
-                    running = false;
+                    continue;
                 }
 
                 *connection_fd = socket_accept(socket_fd);
+
+                if (*connection_fd == -1) {
+                    perror("[ERROR] Socket accept failed");
+                    free(connection_fd);
+                    continue;
+                }
+                
                 add_work(handle_connection,(void*)connection_fd,pool);
                 }
 
@@ -123,6 +104,30 @@ int main(){
         }
         
     }
+
+
+}
+
+
+volatile sig_atomic_t running = 1;
+
+int pipe_fd[2];
+
+
+int main(){
+
+    if(pipe(pipe_fd) == -1){
+        perror("[ERROR] pipe creation failed");
+    }
+    
+
+    signal(SIGINT, handle_sigint);
+    int socket_fd = socket_init();
+    thread_pool* pool = thread_pool_init();
+    
+    server_loop(socket_fd,pool);
+    
+    //loop finished
 
     printf("[INFO] Shutting down server!\n");
 
